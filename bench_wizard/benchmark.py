@@ -60,15 +60,15 @@ class Benchmark:
                     )
 
         self._total_time = sum(list(map(lambda x: float(x), self._extrinsics_results)))
-        hydra_margin = int(self._ref_value * DIFF_MARGIN / 100)
+        margin = int(self._ref_value * DIFF_MARGIN / 100)
 
         diff = int(self._ref_value - self._total_time)
 
-        self._acceptable = diff >= -hydra_margin
+        self._acceptable = diff >= -_margin
         self._rerun = rerun
 
 
-def load_hydra_values(filename):
+def load_ref_values(filename):
     with open(filename, "r") as f:
         return json.load(f)
 
@@ -85,9 +85,9 @@ def prepare_benchmarks(config: Config, reference_values: dict):
 
     for pallet in config.pallets:
         command = COMMAND + [f"--pallet={pallet}"]
-        hydra_data = reference_values[pallet]
-        hydra_value = sum(list(map(lambda x: float(x), hydra_data.values())))
-        benchmarks.append(Benchmark(pallet, command, hydra_value, hydra_data.keys()))
+        ref_data = reference_values[pallet]
+        ref_value = sum(list(map(lambda x: float(x), ref_data.values())))
+        benchmarks.append(Benchmark(pallet, command, ref_value, ref_data.keys()))
 
     return benchmarks
 
@@ -103,17 +103,17 @@ def run_benchmarks(benchmarks: [Benchmark], rerun=False):
 
 def show_pallet_result(pallet_result: Benchmark):
     pallet = pallet_result._pallet
-    hydra = pallet_result._ref_value
+    ref_value = pallet_result._ref_value
     current = pallet_result._total_time
 
-    hydra_margin = int(hydra * DIFF_MARGIN / 100)
+    margin = int(ref_value * DIFF_MARGIN / 100)
 
-    diff = int(hydra - current)
+    diff = int(ref_value - current)
 
-    note = "OK" if diff >= -hydra_margin else "FAILED"
+    note = "OK" if diff >= -margin else "FAILED"
 
     diff = f"{diff}"
-    times = f"{hydra:.2f} vs {current:.2f}"
+    times = f"{ref_value:.2f} vs {current:.2f}"
 
     rerun = "*" if pallet_result._rerun else ""
 
@@ -124,10 +124,10 @@ def run_pallet_benchmarks(config: Config):
     if not config.do_pallet_bench:
         return
 
-    print("HydraDX Node Performance check ... ")
+    print("Substrate Node Performance check ... ")
 
     if config.do_pallet_bench:
-        s = load_hydra_values(config.reference_values)
+        s = load_ref_values(config.reference_values)
 
         benchmarks = prepare_benchmarks(config, s)
         run_benchmarks(benchmarks)
@@ -147,11 +147,11 @@ def run_pallet_benchmarks(config: Config):
 
         print("\nNotes:")
         print(
-            "* - diff means the difference between HydraDX reference total time and total benchmark time of current machine"
+            "* - diff means the difference between reference total time and total benchmark time of current machine"
         )
         print(
             f"* - If diff >= 0 - ( {DIFF_MARGIN}% of ref value) -> performance is same or better"
         )
         print(
-            f"* - If diff < 0 - ( {DIFF_MARGIN}% of ref value) -> performance is worse and might not be suitable to run HydraDX node ( You may ask HydraDX devs for further clarifications)"
+            f"* - If diff < 0 - ( {DIFF_MARGIN}% of ref value) -> performance is worse and might not be suitable to run node ( You may ask node devs for further clarifications)"
         )

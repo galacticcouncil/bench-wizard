@@ -8,8 +8,11 @@ authors = ["Martin Hloska <martin.hloska@gmail.com>"]
 python = "^3.8"
 click = "^7.1.2"
 
+[tool.poetry.scripts]
+benchwizard = 'bench_wizard.main:main'
+
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "6.2.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
