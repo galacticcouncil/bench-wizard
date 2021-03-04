@@ -1,0 +1,1 @@
+from bench_wizard.__version__ import __version__
