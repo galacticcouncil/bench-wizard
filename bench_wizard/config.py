@@ -10,4 +10,5 @@ class Config:
     substrate_repo_path: str = "./substrate"
     do_pallet_bench: bool = True
     reference_values: Optional[str] = None
+    dump_results: Optional[str] = None
     pallets: [str] = field(default_factory=lambda: PALLETS)

@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 
 from bench_wizard.config import Config
@@ -64,8 +65,12 @@ class Benchmark:
 
         diff = int(self._ref_value - self._total_time)
 
-        self._acceptable = diff >= - margin
+        self._acceptable = diff >= -margin
         self._rerun = rerun
+
+    def dump(self, dest):
+        with open(os.path.join(dest, f"{self._pallet}.results"), "wb") as f:
+            f.write(self._stdout)
 
 
 def load_ref_values(filename):
@@ -144,6 +149,9 @@ def run_pallet_benchmarks(config: Config):
 
         for bench in benchmarks:
             show_pallet_result(bench)
+
+            if config.dump_results:
+                bench.dump(config.dump_results)
 
         print("\nNotes:")
         print(

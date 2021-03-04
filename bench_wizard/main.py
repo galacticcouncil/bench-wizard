@@ -39,13 +39,29 @@ def main():
     default=".maintain/bench-check/hydradx-bench-data.json",
     help="Reference values - json format",
 )
-@click.option("-p", "--pallet", type=str, multiple=True, required=False, default=PALLETS, help="Pallets")
+@click.option(
+    "-p",
+    "--pallet",
+    type=str,
+    multiple=True,
+    required=False,
+    default=PALLETS,
+    help="Pallets",
+)
+@click.option(
+    "-d",
+    "--dump-results",
+    type=str,
+    required=False,
+    help="Directory to dump benchmarks results",
+)
 def benchmark(
     include_db_benchmark: bool,
     no_pallet_benchmarks: bool,
     substrate_repo_path: str,
     reference_values: str,
     pallet: Optional[list],
+    dump_results: Optional[str],
 ):
     config = Config(
         do_db_bench=include_db_benchmark,
@@ -53,6 +69,7 @@ def benchmark(
         do_pallet_bench=not no_pallet_benchmarks,
         reference_values=reference_values,
         pallets=pallet,
+        dump_results=dump_results,
     )
 
     run_pallet_benchmarks(config)
