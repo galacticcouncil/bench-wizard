@@ -115,6 +115,8 @@ def show_pallet_result(pallet_result: Benchmark):
 
     diff = int(ref_value - current)
 
+    percentage = f"{(diff / (ref_value + current) ) * 100:.2f}"
+
     note = "OK" if diff >= -margin else "FAILED"
 
     diff = f"{diff}"
@@ -122,7 +124,9 @@ def show_pallet_result(pallet_result: Benchmark):
 
     rerun = "*" if pallet_result._rerun else ""
 
-    print(f"{pallet:<25}| {times:^25} | {diff:^13} | {note:^10} | {rerun:^10}")
+    print(
+        f"{pallet:<25}| {times:^25} | {diff:^14}| {percentage:^14} | {note:^10} | {rerun:^10}"
+    )
 
 
 def run_pallet_benchmarks(config: Config):
@@ -144,7 +148,7 @@ def run_pallet_benchmarks(config: Config):
         print("\nResults:\n\n")
 
         print(
-            f"{'Pallet':^25}|{'Time comparison (µs)':^27}|{'diff*':^15}|{'': ^12}| {'Rerun': ^10}"
+            f"{'Pallet':^25}|{'Time comparison (µs)':^27}|{'diff* (µs)':^15}|{'diff* (%)':^16}|{'': ^12}| {'Rerun': ^10}"
         )
 
         for bench in benchmarks:
@@ -158,8 +162,8 @@ def run_pallet_benchmarks(config: Config):
             "* - diff means the difference between reference total time and total benchmark time of current machine"
         )
         print(
-            f"* - If diff >= 0 - ( {DIFF_MARGIN}% of ref value) -> performance is same or better"
+            f"* - if diff > {DIFF_MARGIN}% of ref value -> performance is same or better"
         )
         print(
-            f"* - If diff < 0 - ( {DIFF_MARGIN}% of ref value) -> performance is worse and might not be suitable to run node ( You may ask node devs for further clarifications)"
+            f"* - If diff < {DIFF_MARGIN}% of ref value -> performance is worse and might not be suitable to run node ( You may ask node devs for further clarifications)"
         )
