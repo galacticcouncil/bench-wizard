@@ -64,7 +64,7 @@ class Benchmark:
 
         diff = int(self._ref_value - self._total_time)
 
-        self._acceptable = diff >= -_margin
+        self._acceptable = diff >= - margin
         self._rerun = rerun
 
 
