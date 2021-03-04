@@ -9,7 +9,7 @@ def db_benchmark(config: Config):
     if not config.do_db_bench:
         return
 
-    print(" Performing Database benchmark ( this may take a while ) ... ")
+    print("Performing Database benchmark ( this may take a while ) ... ")
 
     # clone only if dir does not exit
     if not os.path.isdir(config.substrate_repo_path):
@@ -56,7 +56,7 @@ def display_db_benchmark_results(results):
     if not results:
         return
 
-    print("Database benchmark results:\n\n")
+    print("Database benchmark results:\n")
     print(f"{'Name':^75}|{'Raw average(ns)':^26}|{'Average(ns)':^21}|")
 
     for oper in results:
@@ -64,6 +64,8 @@ def display_db_benchmark_results(results):
             print(
                 f"{result['name']:<75}| {result['raw_average']:^25}| {result['average']:^20}|"
             )
+
+    print("")
 
 
 def run_db_benchmark(config: Config):

@@ -3,7 +3,7 @@ from typing import Optional
 import click
 
 from bench_wizard.benchmark import run_pallet_benchmarks
-from bench_wizard.config import Config
+from bench_wizard.config import Config, PALLETS
 from bench_wizard.db_bench import run_db_benchmark
 
 
@@ -39,13 +39,7 @@ def main():
     default=".maintain/bench-check/hydradx-bench-data.json",
     help="Reference values - json format",
 )
-@click.option(
-    "--reference-values",
-    type=str,
-    default=".maintain/bench-check/hydradx-bench-data.json",
-    help="Reference values - json format",
-)
-@click.option("-p", "--pallet", type=str, multiple=True, required=False, help="Pallets")
+@click.option("-p", "--pallet", type=str, multiple=True, required=False, default=PALLETS, help="Pallets")
 def benchmark(
     include_db_benchmark: bool,
     no_pallet_benchmarks: bool,
@@ -62,4 +56,5 @@ def benchmark(
     )
 
     run_pallet_benchmarks(config)
+    print("")
     run_db_benchmark(config)
