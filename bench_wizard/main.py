@@ -2,6 +2,7 @@ from typing import Optional
 
 import click
 
+from bench_wizard import __version__
 from bench_wizard.benchmark import run_pallet_benchmarks
 from bench_wizard.config import Config, PALLETS
 from bench_wizard.db_bench import run_db_benchmark
@@ -10,6 +11,11 @@ from bench_wizard.db_bench import run_db_benchmark
 @click.group()
 def main():
     pass
+
+
+@main.command()
+def version():
+    click.echo(__version__)
 
 
 @main.command("benchmark")
