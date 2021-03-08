@@ -1,9 +1,11 @@
 import json
 import os
 import subprocess
+import sys
 from typing import Callable, List
 
 from bench_wizard.config import Config
+from bench_wizard.exceptions import BenchmarkCargoException
 
 DIFF_MARGIN = 10  # percent
 
@@ -57,7 +59,10 @@ class Benchmark:
 
     def run(self, rerun: bool = False) -> None:
         result = subprocess.run(self._command, capture_output=True)
-        # TODO: check the return code
+
+        if result.returncode != 0:
+            print(result.stderr.decode("utf-8"), file=sys.stderr)
+            raise BenchmarkCargoException
 
         self._stdout = result.stdout
 
@@ -70,7 +75,7 @@ class Benchmark:
                 extrinsic = info[1].split(":")[1].strip()[1:-1]
                 if extrinsic in self._extrinsics:
                     self._extrinsics_results.append(
-                        process_extrinsic(lines[idx + 1: idx + 21])
+                        process_extrinsic(lines[idx + 1 : idx + 21])
                     )
 
         self._total_time = sum(list(map(lambda x: float(x), self._extrinsics_results)))

@@ -7,6 +7,7 @@ from bench_wizard import __version__
 from bench_wizard.benchmark import run_pallet_benchmarks
 from bench_wizard.config import Config, PALLETS
 from bench_wizard.db_bench import run_db_benchmark
+from bench_wizard.exceptions import BenchmarkCargoException
 
 
 @click.group()
@@ -111,5 +112,8 @@ def benchmark(
         performance_check=performance_check,
     )
 
-    run_pallet_benchmarks(config, partial(output_func, performance_check))
+    try:
+        run_pallet_benchmarks(config, partial(output_func, performance_check))
+    except BenchmarkCargoException:
+        exit(1)
     run_db_benchmark(config)
