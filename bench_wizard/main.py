@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Optional
 
 import click
@@ -61,14 +62,43 @@ def version():
     required=False,
     help="Directory to dump benchmarks results",
 )
+@click.option(
+    "-o",
+    "--output-dir",
+    type=str,
+    required=False,
+    help="Save weights into rust file",
+)
+@click.option(
+    "-t",
+    "--template",
+    type=str,
+    required=False,
+    help="Weight hbs template file ",
+)
+@click.option(
+    "-pc",
+    "--performance-check",
+    type=bool,
+    default=False,
+    is_flag=True,
+    help="Weight hbs template file ",
+)
 def benchmark(
     include_db_benchmark: bool,
     no_pallet_benchmarks: bool,
     substrate_repo_path: str,
     reference_values: str,
+    performance_check: bool,
     pallet: Optional[list],
     dump_results: Optional[str],
+    template: Optional[str],
+    output_dir: Optional[str],
 ):
+    def output_func(display: bool, msg: str) -> None:
+        if display:
+            print(msg)
+
     config = Config(
         do_db_bench=include_db_benchmark,
         substrate_repo_path=substrate_repo_path,
@@ -76,8 +106,10 @@ def benchmark(
         reference_values=reference_values,
         pallets=pallet,
         dump_results=dump_results,
+        template=template,
+        output_dir=output_dir,
+        performance_check=performance_check,
     )
 
-    run_pallet_benchmarks(config)
-    print("")
+    run_pallet_benchmarks(config, partial(output_func, performance_check))
     run_db_benchmark(config)

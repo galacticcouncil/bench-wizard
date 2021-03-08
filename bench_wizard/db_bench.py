@@ -2,12 +2,14 @@ import json
 import os
 import subprocess
 
+from typing import Tuple, Union
+
 from bench_wizard.config import Config
 
 
-def db_benchmark(config: Config):
+def db_benchmark(config: Config) -> Union[None, Tuple[dict, dict]]:
     if not config.do_db_bench:
-        return
+        return None
 
     print("Performing Database benchmark ( this may take a while ) ... ")
 
@@ -22,7 +24,7 @@ def db_benchmark(config: Config):
 
         if result.returncode != 0:
             print("Failed to clone substrate repository")
-            return
+            return None
 
     read_benchmark_command = (
         "cargo run --release -p node-bench -- ::trie::read::large --json".split(" ")
@@ -37,7 +39,7 @@ def db_benchmark(config: Config):
 
     if read_result.returncode != 0:
         print(f"Failed to run read DB benchmarks: {read_result.stderr}")
-        return
+        return None
 
     write_result = subprocess.run(
         write_benchmark_command, capture_output=True, cwd=config.substrate_repo_path
@@ -45,14 +47,14 @@ def db_benchmark(config: Config):
 
     if write_result.returncode != 0:
         print(f"Failed to run read DB benchmarks: {write_result.stderr}")
-        return
+        return None
 
     read_result = json.loads(read_result.stdout)
     write_result = json.loads(write_result.stdout)
     return read_result, write_result
 
 
-def display_db_benchmark_results(results):
+def display_db_benchmark_results(results: tuple) -> None:
     if not results:
         return
 
