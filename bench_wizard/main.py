@@ -1,3 +1,4 @@
+import sys
 from functools import partial
 from typing import Optional
 
@@ -8,6 +9,7 @@ from bench_wizard.benchmark import run_pallet_benchmarks
 from bench_wizard.config import Config, PALLETS
 from bench_wizard.db_bench import run_db_benchmark
 from bench_wizard.exceptions import BenchmarkCargoException
+from bench_wizard.output import Output
 
 
 @click.group()
@@ -83,7 +85,7 @@ def version():
     type=bool,
     default=False,
     is_flag=True,
-    help="Weight hbs template file ",
+    help="Weight hbs template file",
 )
 def benchmark(
     include_db_benchmark: bool,
@@ -96,9 +98,6 @@ def benchmark(
     template: Optional[str],
     output_dir: Optional[str],
 ):
-    def output_func(display: bool, msg: str) -> None:
-        if display:
-            print(msg)
 
     config = Config(
         do_db_bench=include_db_benchmark,
@@ -113,7 +112,8 @@ def benchmark(
     )
 
     try:
-        run_pallet_benchmarks(config, partial(output_func, performance_check))
-    except BenchmarkCargoException:
+        run_pallet_benchmarks(config, Output(not performance_check))
+    except BenchmarkCargoException as e:
+        print(str(e), file=sys.stderr)
         exit(1)
     run_db_benchmark(config)

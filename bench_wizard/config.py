@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-# TODO: remove default Hydra pallets - will become required parameter
+# TODO: remove default Hydra pallets - pallets will become required parameter
 PALLETS = ["amm", "exchange", "transaction_multi_payment"]
 
 

@@ -1,12 +1,13 @@
 import json
 import os
 import subprocess
-import sys
-from typing import Callable, List
+from typing import List
 
 from bench_wizard.config import Config
 from bench_wizard.exceptions import BenchmarkCargoException
+from bench_wizard.output import Output
 
+# TODO: need as configurable option
 DIFF_MARGIN = 10  # percent
 
 COMMAND = [
@@ -28,9 +29,10 @@ COMMAND = [
 
 
 class Benchmark:
+    """ Represents single benchmark"""
+
     def __init__(self, pallet: str, command: [str], ref_value: float, extrinsics: list):
 
-        # refactor the usage of this protected members so not called directly
         self._pallet = pallet
         self._stdout = None
         self._command = command
@@ -54,15 +56,19 @@ class Benchmark:
         self._acceptable = value
 
     @property
+    def completed(self):
+        return self._completed
+
+    @property
     def raw(self) -> bytes:
         return self._stdout
 
     def run(self, rerun: bool = False) -> None:
+        """Run benchmark and parse the result"""
         result = subprocess.run(self._command, capture_output=True)
 
         if result.returncode != 0:
-            print(result.stderr.decode("utf-8"), file=sys.stderr)
-            raise BenchmarkCargoException
+            raise BenchmarkCargoException(result.stderr.decode("utf-8"))
 
         self._stdout = result.stdout
 
@@ -75,7 +81,7 @@ class Benchmark:
                 extrinsic = info[1].split(":")[1].strip()[1:-1]
                 if extrinsic in self._extrinsics:
                     self._extrinsics_results.append(
-                        process_extrinsic(lines[idx + 1 : idx + 21])
+                        process_extrinsic(lines[idx + 1: idx + 21])
                     )
 
         self._total_time = sum(list(map(lambda x: float(x), self._extrinsics_results)))
@@ -85,12 +91,15 @@ class Benchmark:
 
         self.acceptable = diff >= -margin
         self._rerun = rerun
+        self._completed = True
 
     def dump(self, dest: str) -> None:
+        """Write benchmark result to a destination file."""
         with open(os.path.join(dest, f"{self._pallet}.results"), "wb") as f:
             f.write(self._stdout)
 
     def result_as_str(self) -> str:
+        """Return benchmark result as a pre-formatted string."""
         # TODO: refactor to be nice and simple
         pallet = self._pallet
         ref_value = self._ref_value
@@ -137,19 +146,25 @@ def _prepare_benchmarks(config: Config, reference_values: dict) -> List[Benchmar
     return benchmarks
 
 
-def _run_benchmarks(benchmarks: List[Benchmark], rerun=False) -> None:
+def _run_benchmarks(benchmarks: List[Benchmark], output: Output, rerun=False) -> None:
     # Note : this can be simplified into one statement
+
     if rerun:
         [bench.run(rerun) for bench in benchmarks if bench.acceptable is False]
     else:
-        [bench.run() for bench in benchmarks]
+        output.track(benchmarks)
+        for bench in benchmarks:
+            # Output updates to easily show progress
+            output.update(bench)
+            bench.run()
+            output.update(bench)
 
 
-def run_pallet_benchmarks(config: Config, to_output: Callable[[str], None]) -> None:
+def run_pallet_benchmarks(config: Config, to_output: Output) -> None:
     if not config.do_pallet_bench:
         return
 
-    to_output("Substrate Node Performance check ... ")
+    to_output.info("Substrate Node Performance check ... ")
 
     if config.do_pallet_bench:
         with open(config.reference_values, "r") as f:
@@ -157,22 +172,17 @@ def run_pallet_benchmarks(config: Config, to_output: Callable[[str], None]) -> N
 
         benchmarks = _prepare_benchmarks(config, s)
 
-        to_output("Running benchmarks - this may take a while...")
-        _run_benchmarks(benchmarks)
+        to_output.info("Running benchmarks - this may take a while...")
+
+        _run_benchmarks(benchmarks, to_output)
 
         if [b.acceptable for b in benchmarks].count(False) == 1:
             # if only one failed - rerun it
-            _run_benchmarks(benchmarks, True)
+            _run_benchmarks(benchmarks, to_output, True)
 
-        to_output("\nResults:\n\n")
-
-        to_output(
-            f"{'Pallet':^25}|{'Time comparison (µs)':^27}|{'diff* (µs)':^15}|{'diff* (%)':^16}|{'': ^12}| {'Rerun': ^10}"
-        )
+        to_output.results(benchmarks)
 
         for bench in benchmarks:
-            to_output(bench.result_as_str())
-
             if not config.performance_check:
                 # TODO: consolidate the check mess here ( there are too many flags )
                 print(bench.raw.decode("utf-8"))
@@ -180,13 +190,4 @@ def run_pallet_benchmarks(config: Config, to_output: Callable[[str], None]) -> N
             if config.dump_results:
                 bench.dump(config.dump_results)
 
-        to_output("\nNotes:")
-        to_output(
-            "* - diff means the difference between reference total time and total benchmark time of current machine"
-        )
-        to_output(
-            f"* - if diff > {DIFF_MARGIN}% of ref value -> performance is same or better"
-        )
-        to_output(
-            f"* - If diff < {DIFF_MARGIN}% of ref value -> performance is worse and might not be suitable to run node ( You may ask node devs for further clarifications)"
-        )
+        to_output.footnote()
