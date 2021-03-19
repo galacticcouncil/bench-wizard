@@ -26,14 +26,14 @@ class Output:
     def info(self, msg: str):
         self.print(msg)
 
-    def track(self, benchmarks: ['Benchmark']):
+    def track(self, benchmarks: ["Benchmark"]):
         self._tracker = len(benchmarks)
 
-    def update(self, benchmark: 'Benchmark'):
+    def update(self, benchmark: "Benchmark"):
         print(f"Running {self._completed}/{self._tracker}", end="\r")
         self._completed += benchmark.completed
 
-    def results(self, benchmarks: ['Benchmark']):
+    def results(self, benchmarks: ["Benchmark"]):
         self.info("\nResults:\n\n")
 
         self.info(
@@ -41,7 +41,18 @@ class Output:
         )
 
         for bench in benchmarks:
-            self.print(bench.result_as_str())
+            percentage = f"{bench.percentage:.2f}"
+
+            note = "OK" if bench.acceptable else "FAILED"
+
+            diff = f"{(bench.ref_value - bench.total_time):.2f}"
+            times = f"{bench.ref_value:.2f} vs {bench.total_time:.2f}"
+
+            rerun = "*" if bench.rerun else ""
+
+            self.print(
+                f"{bench.pallet:<25}| {times:^25} | {diff:^14}| {percentage:^14} | {note:^10} | {rerun:^10}"
+            )
 
     def footnote(self):
         self.print("\nNotes:")

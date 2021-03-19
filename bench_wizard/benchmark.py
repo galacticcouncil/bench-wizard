@@ -7,6 +7,8 @@ from bench_wizard.config import Config
 from bench_wizard.exceptions import BenchmarkCargoException
 from bench_wizard.output import Output
 
+from bench_wizard.parser import BenchmarkParser
+
 # TODO: need as configurable option
 DIFF_MARGIN = 10  # percent
 
@@ -48,6 +50,10 @@ class Benchmark:
         self._rerun = False
 
     @property
+    def pallet(self):
+        return self._pallet
+
+    @property
     def acceptable(self) -> bool:
         return self._acceptable
 
@@ -56,7 +62,7 @@ class Benchmark:
         self._acceptable = value
 
     @property
-    def completed(self):
+    def completed(self) -> bool:
         return self._completed
 
     @property
@@ -72,19 +78,10 @@ class Benchmark:
 
         self._stdout = result.stdout
 
-        lines = list(map(lambda x: x.decode(), self._stdout.split(b"\n")))
+        parser = BenchmarkParser(result.stdout)
 
-        for idx, line in enumerate(lines):
-            if line.startswith("Pallet:"):
-                info = line.split(",")
-                # pallet_name = info[0].split(":")[1].strip()[1:-1]
-                extrinsic = info[1].split(":")[1].strip()[1:-1]
-                if extrinsic in self._extrinsics:
-                    self._extrinsics_results.append(
-                        process_extrinsic(lines[idx + 1: idx + 21])
-                    )
+        self._total_time = parser.total_time(self._extrinsics)
 
-        self._total_time = sum(list(map(lambda x: float(x), self._extrinsics_results)))
         margin = int(self._ref_value * DIFF_MARGIN / 100)
 
         diff = int(self._ref_value - self._total_time)
@@ -98,33 +95,25 @@ class Benchmark:
         with open(os.path.join(dest, f"{self._pallet}.results"), "wb") as f:
             f.write(self._stdout)
 
-    def result_as_str(self) -> str:
-        """Return benchmark result as a pre-formatted string."""
-        # TODO: refactor to be nice and simple
-        pallet = self._pallet
-        ref_value = self._ref_value
-        current = self._total_time
+    @property
+    def ref_value(self):
+        return self._ref_value
 
-        margin = int(ref_value * DIFF_MARGIN / 100)
+    @property
+    def total_time(self):
+        return self._total_time
 
-        diff = int(ref_value - current)
+    @property
+    def rerun(self):
+        return self._rerun
 
-        percentage = f"{(diff / (ref_value + current)) * 100:.2f}"
+    @property
+    def percentage(self) -> float:
+        diff = int(self._ref_value - self._total_time)
 
-        note = "OK" if diff >= -margin else "FAILED"
+        percentage = (diff / (self._ref_value + self._total_time)) * 100
 
-        diff = f"{diff}"
-        times = f"{ref_value:.2f} vs {current:.2f}"
-
-        rerun = "*" if self._rerun else ""
-
-        return f"{pallet:<25}| {times:^25} | {diff:^14}| {percentage:^14} | {note:^10} | {rerun:^10}"
-
-
-def process_extrinsic(data: List[str]) -> float:
-    for entry in data:
-        if entry.startswith("Time"):
-            return float(entry.split(" ")[-1])
+        return percentage
 
 
 def _prepare_benchmarks(config: Config, reference_values: dict) -> List[Benchmark]:
