@@ -30,7 +30,10 @@ class Output:
         self._tracker = len(benchmarks)
 
     def update(self, benchmark: "Benchmark"):
-        print(f"Running {self._completed}/{self._tracker}", end="\r")
+        print(
+            f"Running {self._completed}/{self._tracker} (pallet: {benchmark.pallet})",
+            end="\r",
+        )
         self._completed += benchmark.completed
 
     def results(self, benchmarks: ["Benchmark"]):

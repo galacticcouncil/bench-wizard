@@ -3,6 +3,7 @@ import os
 import subprocess
 from typing import List
 
+from bench_wizard.cargo import Cargo
 from bench_wizard.config import Config
 from bench_wizard.exceptions import BenchmarkCargoException
 from bench_wizard.output import Output
@@ -34,7 +35,6 @@ class Benchmark:
     """ Represents single benchmark"""
 
     def __init__(self, pallet: str, command: [str], ref_value: float, extrinsics: list):
-
         self._pallet = pallet
         self._stdout = None
         self._command = command
@@ -120,17 +120,16 @@ def _prepare_benchmarks(config: Config, reference_values: dict) -> List[Benchmar
     benchmarks = []
 
     for pallet in config.pallets:
-        command = COMMAND + [f"--pallet={pallet}"]
+        cargo = Cargo(pallet=pallet, template=config.template)
         if config.output_dir:
             output_file = os.path.join(config.output_dir, f"{pallet}.rs")
-            command += [f"--output={output_file}"]
-
-        if config.template:
-            command += [f"--template={config.template}"]
+            cargo.output = output_file
 
         ref_data = reference_values[pallet]
         ref_value = sum(list(map(lambda x: float(x), ref_data.values())))
-        benchmarks.append(Benchmark(pallet, command, ref_value, ref_data.keys()))
+        benchmarks.append(
+            Benchmark(pallet, cargo.command(), ref_value, ref_data.keys())
+        )
 
     return benchmarks
 
@@ -149,6 +148,21 @@ def _run_benchmarks(benchmarks: List[Benchmark], output: Output, rerun=False) ->
             output.update(bench)
 
 
+def _build(manifest: str) -> None:
+    command = [
+        "cargo",
+        "build",
+        "--release",
+        "--features=runtime-benchmarks",
+        f"--manifest-path={manifest}",
+    ]
+
+    result = subprocess.run(command, capture_output=True)
+
+    if result.returncode != 0:
+        raise BenchmarkCargoException(result.stderr.decode("utf-8"))
+
+
 def run_pallet_benchmarks(config: Config, to_output: Output) -> None:
     if not config.do_pallet_bench:
         return
@@ -160,6 +174,10 @@ def run_pallet_benchmarks(config: Config, to_output: Output) -> None:
             s = json.load(f)
 
         benchmarks = _prepare_benchmarks(config, s)
+
+        to_output.info("Compiling - this may take a while...")
+
+        _build("node/Cargo.toml")
 
         to_output.info("Running benchmarks - this may take a while...")
 
