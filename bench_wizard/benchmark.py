@@ -13,23 +13,6 @@ from bench_wizard.parser import BenchmarkParser
 # TODO: need as configurable option
 DIFF_MARGIN = 10  # percent
 
-COMMAND = [
-    "cargo",
-    "run",
-    "--release",
-    "--features=runtime-benchmarks",
-    "--manifest-path=node/Cargo.toml",
-    "--",
-    "benchmark",
-    "--chain=dev",
-    "--steps=5",
-    "--repeat=20",
-    "--extrinsic=*",
-    "--execution=wasm",
-    "--wasm-execution=compiled",
-    "--heap-pages=4096",
-]
-
 
 class Benchmark:
     """ Represents single benchmark"""
