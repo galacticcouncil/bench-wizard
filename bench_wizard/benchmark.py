@@ -94,7 +94,7 @@ class Benchmark:
     def percentage(self) -> float:
         diff = int(self._ref_value - self._total_time)
 
-        percentage = (diff / (self._ref_value + self._total_time)) * 100
+        percentage = (diff / ((self._ref_value + self._total_time) / 2)) * 100
 
         return percentage
 
