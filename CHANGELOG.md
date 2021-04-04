@@ -1,6 +1,7 @@
-# v0.4.0 
+# v0.4.2 
 
-#### 🚀 Enhancement
+#### Bug
 
-- feat: split build and benchmark run commands
+Percentage calculation fix
+
 
