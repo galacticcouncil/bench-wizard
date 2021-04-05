@@ -4,10 +4,6 @@ from typing import Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from .benchmark import Benchmark
 
-# TODO: need as configurable option
-DIFF_MARGIN = 10  # percent
-
-
 class Output:
     """A class used to handle console output"""
 
@@ -60,11 +56,11 @@ class Output:
     def footnote(self):
         self.print("\nNotes:")
         self.print(
-            "* - diff means the difference between reference total time and total benchmark time of current machine"
+            "- in the diff fields you can see the difference between the reference benchmark time and the benchmark time of your machine"
         )
         self.print(
-            f"* - if diff > {DIFF_MARGIN}% of ref value -> performance is same or better"
+            f"- if diff is positive for all three pallets, your machine covers the minimum requirements for running a HydraDX node"
         )
         self.print(
-            f"* - If diff < {DIFF_MARGIN}% of ref value -> performance is worse and might not be suitable to run node ( You may ask node devs for further clarifications)"
+            f"- if diff is negative for one of the pallets, your machine might not be suitable to run a node"
         )
