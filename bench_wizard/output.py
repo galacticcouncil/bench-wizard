@@ -62,5 +62,5 @@ class Output:
             f"- if diff is positive for all three pallets, your machine covers the minimum requirements for running a HydraDX node"
         )
         self.print(
-            f"- if diff is negative for one of the pallets, your machine might not be suitable to run a node"
+            f"- if diff is negative for one (or more) of the pallets, your machine might not be suitable to run a node"
         )
