@@ -4,6 +4,9 @@ from typing import Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from .benchmark import Benchmark
 
+# TODO: need as configurable option
+DIFF_MARGIN = 10  # percent
+
 class Output:
     """A class used to handle console output"""
 
@@ -62,5 +65,5 @@ class Output:
             f"- if diff is positive for all three pallets, your machine covers the minimum requirements for running a HydraDX node"
         )
         self.print(
-            f"- if diff is negative for one (or more) of the pallets, your machine might not be suitable to run a node"
+            f"- if diff deviates by -{DIFF_MARGIN}% or more for some of the pallets, your machine might not be suitable to run a node"
         )
