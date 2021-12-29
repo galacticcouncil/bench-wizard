@@ -5,6 +5,7 @@ import click
 
 from bench_wizard import __version__
 from bench_wizard.benchmark import run_pallet_benchmarks, BenchmarksConfig
+from bench_wizard.db_bench import DBPerformanceConfig, run_db_benchmark
 from bench_wizard.exceptions import BenchmarkCargoException
 from bench_wizard.output import Output, PerformanceOutput
 from bench_wizard.performance import run_pallet_performance, PerformanceConfig
@@ -83,7 +84,7 @@ def benchmark(
     required=True,
     help="Pallets",
 )
-def benchmark(
+def pc(
     reference_values: str,
     pallet: list,
 ):
@@ -97,3 +98,21 @@ def benchmark(
     except BenchmarkCargoException as e:
         print(str(e), file=sys.stderr)
         exit(1)
+
+
+@main.command("db")
+@click.option(
+    "-d",
+    "--substrate-dir",
+    type=str,
+    required=True,
+    help="Substrate directory",
+)
+def db_benchmark(
+    substrate_dir: str,
+):
+    config = DBPerformanceConfig(
+        substrate_dir=substrate_dir,
+    )
+
+    run_db_benchmark(config)
