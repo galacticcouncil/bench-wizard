@@ -1,3 +1,4 @@
+import os
 import sys
 from typing import Optional
 
@@ -88,6 +89,12 @@ def pc(
     reference_values: str,
     pallet: list,
 ):
+
+    if not os.path.isfile(reference_values):
+        print(f"{reference_values} does not exist", file=sys.stderr)
+        exit(1)
+
+
     config = PerformanceConfig(
         reference_values=reference_values,
         pallets=pallet,
