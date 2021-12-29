@@ -4,10 +4,11 @@ import subprocess
 
 from typing import Tuple, Union
 
-from bench_wizard.config import Config
+from bench_wizard.performance import PerformanceConfig
 
+"""
 
-def db_benchmark(config: Config) -> Union[None, Tuple[dict, dict]]:
+def db_benchmark(config: PerformanceConfig) -> Union[None, Tuple[dict, dict]]:
     if not config.do_db_bench:
         return None
 
@@ -73,3 +74,5 @@ def display_db_benchmark_results(results: tuple) -> None:
 def run_db_benchmark(config: Config):
     results = db_benchmark(config)
     display_db_benchmark_results(results)
+    
+"""
