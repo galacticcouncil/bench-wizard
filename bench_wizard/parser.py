@@ -37,7 +37,7 @@ class BenchmarkParser:
                 info = line.split(",")
                 self._pallet = info[0].split(":")[1].strip()[1:-1]
                 extrinsic = info[1].split(":")[1].strip()[1:-1]
-                time = self.extract_time(lines[idx + 1 : idx + 21])
+                time = self.extract_time(lines[idx + 1 :])
                 self._extrinsics[extrinsic] = time
 
     @staticmethod
@@ -45,3 +45,6 @@ class BenchmarkParser:
         for entry in data:
             if entry.startswith("Time"):
                 return float(entry.split(" ")[-1])
+            if entry.startswith("Pallet:"):
+                # we did not find time for some reason
+                raise IOError(f"Failed to find time for an extrinsic. Invalid format?!")

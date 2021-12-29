@@ -1,15 +1,15 @@
+import os
 import sys
-from functools import partial
 from typing import Optional
 
 import click
 
 from bench_wizard import __version__
-from bench_wizard.benchmark import run_pallet_benchmarks
-from bench_wizard.config import Config, PALLETS
-from bench_wizard.db_bench import run_db_benchmark
+from bench_wizard.benchmark import run_pallet_benchmarks, BenchmarksConfig
+from bench_wizard.db_bench import DBPerformanceConfig, run_db_benchmark
 from bench_wizard.exceptions import BenchmarkCargoException
-from bench_wizard.output import Output
+from bench_wizard.output import Output, PerformanceOutput
+from bench_wizard.performance import run_pallet_performance, PerformanceConfig
 
 
 @click.group()
@@ -24,38 +24,11 @@ def version():
 
 @main.command("benchmark")
 @click.option(
-    "--include-db-benchmark",
-    type=bool,
-    default=False,
-    is_flag=True,
-    help="Perform Substrate Database benchmark",
-)
-@click.option(
-    "--no-pallet-benchmarks",
-    type=bool,
-    default=False,
-    is_flag=True,
-    help="Skip pallets benchmarks",
-)
-@click.option(
-    "--substrate-repo-path",
-    type=str,
-    default="./substrate",
-    help="Substrate repository path (cloned if not provided or does not exist)",
-)
-@click.option(
-    "--reference-values",
-    type=str,
-    default=".maintain/bench-check/hydradx-bench-data.json",
-    help="Reference values - json format",
-)
-@click.option(
     "-p",
     "--pallet",
     type=str,
     multiple=True,
-    required=False,
-    default=PALLETS,
+    required=True,
     help="Pallets",
 )
 @click.option(
@@ -79,41 +52,74 @@ def version():
     required=False,
     help="Weight hbs template file ",
 )
-@click.option(
-    "-pc",
-    "--performance-check",
-    type=bool,
-    default=False,
-    is_flag=True,
-    help="Weight hbs template file",
-)
 def benchmark(
-    include_db_benchmark: bool,
-    no_pallet_benchmarks: bool,
-    substrate_repo_path: str,
-    reference_values: str,
-    performance_check: bool,
-    pallet: Optional[list],
+    pallet: list,
     dump_results: Optional[str],
     template: Optional[str],
     output_dir: Optional[str],
 ):
 
-    config = Config(
-        do_db_bench=include_db_benchmark,
-        substrate_repo_path=substrate_repo_path,
-        do_pallet_bench=not no_pallet_benchmarks,
-        reference_values=reference_values,
+    config = BenchmarksConfig(
         pallets=pallet,
         dump_results=dump_results,
         template=template,
         output_dir=output_dir,
-        performance_check=performance_check,
+    )
+
+    run_pallet_benchmarks(config, Output())
+
+
+@main.command("pc")
+@click.option(
+    "-rf",
+    "--reference-values",
+    type=str,
+    required=True,
+    help="Reference values - json format",
+)
+@click.option(
+    "-p",
+    "--pallet",
+    type=str,
+    multiple=True,
+    required=True,
+    help="Pallets",
+)
+def pc(
+    reference_values: str,
+    pallet: list,
+):
+
+    if not os.path.isfile(reference_values):
+        print(f"{reference_values} does not exist", file=sys.stderr)
+        exit(1)
+
+
+    config = PerformanceConfig(
+        reference_values=reference_values,
+        pallets=pallet,
     )
 
     try:
-        run_pallet_benchmarks(config, Output(not performance_check))
+        run_pallet_performance(config, PerformanceOutput())
     except BenchmarkCargoException as e:
         print(str(e), file=sys.stderr)
         exit(1)
+
+
+@main.command("db")
+@click.option(
+    "-d",
+    "--substrate-dir",
+    type=str,
+    required=True,
+    help="Substrate directory",
+)
+def db_benchmark(
+    substrate_dir: str,
+):
+    config = DBPerformanceConfig(
+        substrate_dir=substrate_dir,
+    )
+
     run_db_benchmark(config)
