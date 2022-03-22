@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bench-wizard"
-version = "0.5.1"
+version = "0.5.2"
 description = ""
 authors = ["Martin Hloska <martin.hloska@gmail.com>"]
 

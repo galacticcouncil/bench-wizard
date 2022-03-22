@@ -95,9 +95,18 @@ def benchmark(
     required=True,
     help="Pallets",
 )
+@click.option(
+    "-c",
+    "--chain",
+    type=str,
+    required=False,
+    default="dev",
+    help="chain",
+)
 def pc(
     reference_values: str,
     pallet: list,
+    chain: str,
 ):
 
     if not os.path.isfile(reference_values):
@@ -105,8 +114,7 @@ def pc(
         exit(1)
 
     config = PerformanceConfig(
-        reference_values=reference_values,
-        pallets=pallet,
+        reference_values=reference_values, pallets=pallet, chain=chain
     )
 
     try:

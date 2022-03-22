@@ -1,7 +1,7 @@
 import json
 import subprocess
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from bench_wizard.benchmark import Benchmark
 from bench_wizard.cargo import Cargo
@@ -18,10 +18,13 @@ DIFF_MARGIN = 10  # percent
 class PerformanceConfig:
     pallets: [str]
     reference_values: str
+    chain: Optional[str] = "dev"
 
 
 class PalletPerformance:
-    def __init__(self, pallet: str, ref_value: float, extrinsics: list):
+    def __init__(
+        self, pallet: str, ref_value: float, extrinsics: list, chain: str = "dev"
+    ):
         self._pallet = pallet
         self._stdout = None
         self._ref_value = ref_value
@@ -37,6 +40,8 @@ class PalletPerformance:
 
         self._is_error = False
         self._error_reason = False
+
+        self._chain = chain
 
     @property
     def pallet(self):
@@ -61,7 +66,7 @@ class PalletPerformance:
     def run(self, rerun: bool = False) -> None:
         """Run benchmark and parse the result"""
 
-        cargo = Cargo(pallet=self.pallet)
+        cargo = Cargo(pallet=self.pallet, chain=self._chain)
         benchmark = Benchmark(self.pallet, cargo.command())
         benchmark.run()
 
@@ -113,7 +118,9 @@ def _prepare_benchmarks(
     for pallet in config.pallets:
         ref_data = reference_values[pallet]
         ref_value = sum(list(map(lambda x: float(x), ref_data.values())))
-        benchmarks.append(PalletPerformance(pallet, ref_value, ref_data.keys()))
+        benchmarks.append(
+            PalletPerformance(pallet, ref_value, ref_data.keys(), chain=config.chain)
+        )
 
     return benchmarks
 
