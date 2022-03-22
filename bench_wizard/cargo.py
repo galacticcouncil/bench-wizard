@@ -6,7 +6,7 @@ from typing import Optional, List
 class Cargo:
     pallet: str
     manifest: str = "node/Cargo.toml"
-    chain: str = "dev"
+    chain: str = "local"
     steps: int = 5
     repeat: int = 20
     extrinsic: str = "*"
