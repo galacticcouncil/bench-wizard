@@ -16,6 +16,7 @@ class BenchmarksConfig:
     dump_results: Optional[str] = None
     output_dir: Optional[str] = None
     template: Optional[str] = None
+    chain: Optional[str] = "dev"
 
 
 class Benchmark:
@@ -77,7 +78,7 @@ def _prepare_benchmarks(config: BenchmarksConfig) -> List[Benchmark]:
     benchmarks = []
 
     for pallet in config.pallets:
-        cargo = Cargo(pallet=pallet, template=config.template)
+        cargo = Cargo(pallet=pallet, template=config.template, chain=config.chain)
 
         if config.output_dir:
             output_file = os.path.join(config.output_dir, f"{pallet}.rs")

@@ -32,6 +32,14 @@ def version():
     help="Pallets",
 )
 @click.option(
+    "-c",
+    "--chain",
+    type=str,
+    required=False,
+    default="dev",
+    help="chain",
+)
+@click.option(
     "-d",
     "--dump-results",
     type=str,
@@ -54,6 +62,7 @@ def version():
 )
 def benchmark(
     pallet: list,
+    chain: str,
     dump_results: Optional[str],
     template: Optional[str],
     output_dir: Optional[str],
@@ -64,6 +73,7 @@ def benchmark(
         dump_results=dump_results,
         template=template,
         output_dir=output_dir,
+        chain=chain,
     )
 
     run_pallet_benchmarks(config, Output())
@@ -93,7 +103,6 @@ def pc(
     if not os.path.isfile(reference_values):
         print(f"{reference_values} does not exist", file=sys.stderr)
         exit(1)
-
 
     config = PerformanceConfig(
         reference_values=reference_values,
